@@ -1,11 +1,13 @@
-from unittest.mock import Mock, patch
 from unittest import TestCase
+from unittest.mock import Mock, patch
+
 import django
 from django.core.cache import InvalidCacheBackendError
 
+from django_elastipymemcache.client import ConfigurationEndpointClient
+
 # from nose.tools import self.assertEqual, raises
 
-from django_elastipymemcache.client import ConfigurationEndpointClient
 
 
 class DjangoElastiPymemcacheBackendTestCases(TestCase):
