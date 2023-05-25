@@ -26,7 +26,7 @@ class ConfigurationEndpointClient(Client):
         nodes = []
         for raw_node in raw_nodes.split(b' '):
             host, ip, port = raw_node.split(b'|')
-            nodes.append((smart_text(ip or host), int(port)))
+            nodes.append((smart_str(ip or host), int(port)))
         return {
             'version': int(raw_version),
             'nodes': nodes,

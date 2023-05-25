@@ -22,7 +22,6 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
-        'Framework :: Django :: 3.2',
         'Framework :: Django :: 4.2',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
@@ -34,7 +33,7 @@ setup(
     packages=find_packages(exclude=('tests',)),
     include_package_data=True,
     install_requires=[
-        'pymemcache==3.3.0',
-        'Django>=3.2',
+        'pymemcache==4.0.0',
+        'Django>=4.2',
     ],
 )

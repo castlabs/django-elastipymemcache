@@ -21,8 +21,7 @@ Requirements
 ------------
 
 * pymemcache
-* Django>=2.2
-* django-pymemcache>=1.0
+* Django>=4.2
 
 Installation
 ------------
