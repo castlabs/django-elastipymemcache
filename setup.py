@@ -33,7 +33,7 @@ setup(
     packages=find_packages(exclude=('tests',)),
     include_package_data=True,
     install_requires=[
-        'pymemcache==4.0.0',
+        'pymemcache==3.4.3',
         'Django>=4.2',
     ],
 )
