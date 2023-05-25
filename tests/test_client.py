@@ -2,10 +2,7 @@ import collections
 from unittest import TestCase
 from unittest.mock import call, patch
 
-from pymemcache.exceptions import (
-    MemcacheUnknownCommandError,
-    MemcacheUnknownError,
-)
+from pymemcache.exceptions import MemcacheUnknownCommandError, MemcacheUnknownError
 
 from django_elastipymemcache.client import ConfigurationEndpointClient
 

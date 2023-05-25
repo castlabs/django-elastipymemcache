@@ -51,8 +51,7 @@ class ElastiPymemcache(PyMemcacheCache):
 
         if len(self._servers) > 1:
             raise InvalidCacheBackendError(
-                "ElastiCache should be configured with only one server "
-                "(Configuration Endpoint)",
+                "ElastiCache should be configured with only one server " "(Configuration Endpoint)",
             )
         try:
             host, port = self._servers[0].split(":")

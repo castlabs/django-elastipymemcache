@@ -6,9 +6,6 @@ from django.core.cache import InvalidCacheBackendError
 
 from django_elastipymemcache.client import ConfigurationEndpointClient
 
-# from nose.tools import self.assertEqual, raises
-
-
 
 class DjangoElastiPymemcacheBackendTestCases(TestCase):
     def test_multiple_servers(self):
