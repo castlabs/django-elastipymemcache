@@ -6,8 +6,7 @@ import socket
 from functools import wraps
 
 from django.core.cache import InvalidCacheBackendError
-from django.core.cache.backends.memcached import BaseMemcachedCache
-from djpymemcache import client as djpymemcache_client
+from django.core.cache.backends.memcached import PyMemcacheCache
 
 from .client import ConfigurationEndpointClient
 
@@ -18,6 +17,7 @@ def invalidate_cache_after_error(f):
     """
     Catch any exception and invalidate internal cache with list of nodes
     """
+
     @wraps(f)
     def wrapper(self, *args, **kwds):
         try:
@@ -25,45 +25,40 @@ def invalidate_cache_after_error(f):
         except Exception:
             self.clear_cluster_nodes_cache()
             raise
+
     return wrapper
 
 
-class ElastiPymemcache(BaseMemcachedCache):
+class ElastiPymemcache(PyMemcacheCache):
     """
     Backend for Amazon ElastiCache (memcached) with auto discovery mode
     it used pymemcache
     """
-    def __init__(self, server, params):
-        params['OPTIONS'] = params.get('OPTIONS', {})
-        params['OPTIONS'].setdefault('ignore_exc', True)
 
-        self._cluster_timeout = params['OPTIONS'].pop(
-            'cluster_timeout',
+    def __init__(self, server, params):
+        super().__init__(server, params)
+
+        self._options.setdefault("ignore_exc", True)
+
+        self._cluster_timeout = self._options.pop(
+            "cluster_timeout",
             socket._GLOBAL_DEFAULT_TIMEOUT,
         )
-        self._ignore_cluster_errors = params['OPTIONS'].pop(
-            'ignore_cluster_errors',
+        self._ignore_cluster_errors = self._options.pop(
+            "ignore_cluster_errors",
             False,
-        )
-
-        super().__init__(
-            server,
-            params,
-            library=djpymemcache_client,
-            value_not_found_exception=ValueError,
         )
 
         if len(self._servers) > 1:
             raise InvalidCacheBackendError(
-                'ElastiCache should be configured with only one server '
-                '(Configuration Endpoint)',
+                "ElastiCache should be configured with only one server " "(Configuration Endpoint)",
             )
         try:
-            host, port = self._servers[0].split(':')
+            host, port = self._servers[0].split(":")
             port = int(port)
         except ValueError:
             raise InvalidCacheBackendError(
-                'Server configuration should be in format IP:Port',
+                "Server configuration should be in format IP:Port",
             )
 
         self.configuration_endpoint_client = ConfigurationEndpointClient(
@@ -74,33 +69,27 @@ class ElastiPymemcache(BaseMemcachedCache):
 
     def clear_cluster_nodes_cache(self):
         """Clear internal cache with list of nodes in cluster"""
-        if hasattr(self, '_client'):
-            del self._client
-
-    def get_cluster_nodes(self):
         try:
-            return self.configuration_endpoint_client \
-                .get_cluster_info()['nodes']
+            del self._cache
+        except AttributeError:
+            # self._cache has not been constructed
+            pass
+
+    @property
+    def client_servers(self):
+        try:
+            return self.configuration_endpoint_client.get_cluster_info()["nodes"]
         except (
             OSError,
             socket.gaierror,
             socket.timeout,
         ) as e:
             logger.warning(
-                'Cannot connect to cluster %s, err: %s',
+                "Cannot connect to cluster %s, err: %s",
                 self.configuration_endpoint_client.server,
                 e,
             )
             return []
-
-    @property
-    def _cache(self):
-        if getattr(self, '_client', None) is None:
-            self._client = self._lib.Client(
-                self.get_cluster_nodes(),
-                **self._options,
-            )
-        return self._client
 
     @invalidate_cache_after_error
     def add(self, *args, **kwargs):

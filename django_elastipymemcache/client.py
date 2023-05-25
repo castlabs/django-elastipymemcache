@@ -17,22 +17,19 @@ class ConfigurationEndpointClient(Client):
         return client
 
     def _get_cluster_info_cmd(self):
-        if StrictVersion(smart_str(self.version())) < StrictVersion('1.4.14'):
-            return b'get AmazonElastiCache:cluster\r\n'
-        return b'config get cluster\r\n'
+        if StrictVersion(smart_str(self.version())) < StrictVersion("1.4.14"):
+            return b"get AmazonElastiCache:cluster\r\n"
+        return b"config get cluster\r\n"
 
     def _extract_cluster_info(self, line):
-        raw_version, raw_nodes, _ = line.split(b'\n')
+        raw_version, raw_nodes, _ = line.split(b"\n")
         nodes = []
-        for raw_node in raw_nodes.split(b' '):
-            host, ip, port = raw_node.split(b'|')
-            nodes.append('{host}:{port}'.format(
-                host=smart_str(ip or host),
-                port=int(port)
-            ))
+        for raw_node in raw_nodes.split(b" "):
+            host, ip, port = raw_node.split(b"|")
+            nodes.append((smart_str(ip or host), int(port)))
         return {
-            'version': int(raw_version),
-            'nodes': nodes,
+            "version": int(raw_version),
+            "nodes": nodes,
         }
 
     def _fetch_cluster_info_cmd(self, cmd, name):
@@ -40,40 +37,42 @@ class ConfigurationEndpointClient(Client):
             self._connect()
         self.sock.sendall(cmd)
 
-        buf = b''
+        buf = b""
         result = {}
         number_of_line = 0
 
         while True:
             buf, line = _readline(self.sock, buf)
             self._raise_errors(line, name)
-            if line == b'END':
+            if line == b"END":
                 if number_of_line != 2:
-                    raise MemcacheUnknownError('Wrong response')
+                    raise MemcacheUnknownError("Wrong response")
                 return result
             if number_of_line == 1:
                 try:
                     result = self._extract_cluster_info(line)
                 except ValueError:
-                    raise MemcacheUnknownError('Wrong format: {line}'.format(
-                        line=line,
-                    ))
+                    raise MemcacheUnknownError(
+                        "Wrong format: {line}".format(
+                            line=line,
+                        )
+                    )
             number_of_line += 1
 
     def get_cluster_info(self):
         cmd = self._get_cluster_info_cmd()
         try:
-            return self._fetch_cluster_info_cmd(cmd, 'config cluster')
+            return self._fetch_cluster_info_cmd(cmd, "config cluster")
         except Exception as e:
             if self.ignore_cluster_errors:
-                logger.warning('Failed to get cluster: %s', e)
+                logger.warning("Failed to get cluster: %s", e)
                 return {
-                    'version': None,
-                    'nodes': [
-                        '{host}:{port:d}'.format(
-                            host=self.server[0],
-                            port=int(self.server[1]),
-                        ),
-                    ]
+                    "version": None,
+                    "nodes": [
+                        (
+                            self.server[0],
+                            int(self.server[1]),
+                        )
+                    ],
                 }
             raise

@@ -20,9 +20,8 @@ Originally forked from `django-elasticache <https://github.com/gusdan/django-ela
 Requirements
 ------------
 
-* pymemcache
-* Django>=2.2
-* django-pymemcache>=1.0
+* pymemcache==3.4.3
+* Django>=3.2
 
 Installation
 ------------
