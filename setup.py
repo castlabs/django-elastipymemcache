@@ -34,6 +34,6 @@ setup(
     include_package_data=True,
     install_requires=[
         "pymemcache==3.4.3",
-        "Django>=4.2",
+        "Django>=3.2",
     ],
 )
