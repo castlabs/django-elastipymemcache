@@ -17,6 +17,7 @@ def invalidate_cache_after_error(f):
     """
     Catch any exception and invalidate internal cache with list of nodes
     """
+
     @wraps(f)
     def wrapper(self, *args, **kwds):
         try:
@@ -24,6 +25,7 @@ def invalidate_cache_after_error(f):
         except Exception:
             self.clear_cluster_nodes_cache()
             raise
+
     return wrapper
 
 
@@ -32,31 +34,32 @@ class ElastiPymemcache(PyMemcacheCache):
     Backend for Amazon ElastiCache (memcached) with auto discovery mode
     it used pymemcache
     """
+
     def __init__(self, server, params):
         super().__init__(server, params)
 
-        self._options.setdefault('ignore_exc', True)
+        self._options.setdefault("ignore_exc", True)
 
         self._cluster_timeout = self._options.pop(
-            'cluster_timeout',
+            "cluster_timeout",
             socket._GLOBAL_DEFAULT_TIMEOUT,
         )
         self._ignore_cluster_errors = self._options.pop(
-            'ignore_cluster_errors',
+            "ignore_cluster_errors",
             False,
         )
 
         if len(self._servers) > 1:
             raise InvalidCacheBackendError(
-                'ElastiCache should be configured with only one server '
-                '(Configuration Endpoint)',
+                "ElastiCache should be configured with only one server "
+                "(Configuration Endpoint)",
             )
         try:
-            host, port = self._servers[0].split(':')
+            host, port = self._servers[0].split(":")
             port = int(port)
         except ValueError:
             raise InvalidCacheBackendError(
-                'Server configuration should be in format IP:Port',
+                "Server configuration should be in format IP:Port",
             )
 
         self.configuration_endpoint_client = ConfigurationEndpointClient(
@@ -76,15 +79,14 @@ class ElastiPymemcache(PyMemcacheCache):
     @property
     def client_servers(self):
         try:
-            return self.configuration_endpoint_client \
-                .get_cluster_info()['nodes']
+            return self.configuration_endpoint_client.get_cluster_info()["nodes"]
         except (
             OSError,
             socket.gaierror,
             socket.timeout,
         ) as e:
             logger.warning(
-                'Cannot connect to cluster %s, err: %s',
+                "Cannot connect to cluster %s, err: %s",
                 self.configuration_endpoint_client.server,
                 e,
             )
